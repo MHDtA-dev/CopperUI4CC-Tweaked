@@ -1,3 +1,5 @@
+![Logo](https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/images/cuilogo.JPG)
+
 # CopperUI4CC-Tweaked
 
 ## What is CopperUI?
