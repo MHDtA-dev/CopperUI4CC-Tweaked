@@ -8,6 +8,9 @@
 ```
 wget https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/CopperUI.lua CopperUI.lua
 ```
+
+** Warning! The library is under development! When using it, it is possible that you may encounter bugs. Please report bugs in the "issues" tab **
+
 ### Some images
 
 - Here you can see a calculator written using this library:
