@@ -8,6 +8,6 @@ wget https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/Coppe
 ```
 ### Some images
 
-- Here you can see the calculator written using this library:
+- Here you can see a calculator written using this library:
 
 ![calculator](https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/images/copperuicctweaked.gif)
