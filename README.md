@@ -31,7 +31,7 @@ wget https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/Coppe
 local copperTerm = dofile("CopperUI.lua")
 ```
 
-### Create window
+### Create the window
 
 ```
 local window = copperTerm.createWindow([Title], [Size Z], [Size Y])
