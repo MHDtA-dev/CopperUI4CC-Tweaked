@@ -74,7 +74,7 @@ local label = copperTerm.createLabel(3, 6, "Hello!", colors.red)
 - You can make centered label:
 
 ```
-local label = copperTerm.createLabel([window], [y position], [text], [text color])
+local label = copperTerm.createCenteredLabel([window], [y position], [text], [text color])
 ```
 
 - Add your label to the window:
