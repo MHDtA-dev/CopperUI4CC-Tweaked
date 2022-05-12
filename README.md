@@ -34,7 +34,7 @@ local copperTerm = dofile("CopperUI.lua")
 ### Create the window
 
 ```
-local window = copperTerm.createWindow([Title], [Size Z], [Size Y])
+local window = copperTerm.createWindow([Title], [Size X], [Size Y])
 ```
 If you want full screen, use
 
