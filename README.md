@@ -114,7 +114,15 @@ label:onEvent("mouse_click", label_clicked)
 
 ```
 
-
 In this example, when the mouse clicks on the label we created earlier, the ```label_clicked``` function will be called.
+
+### Rendering the window
+- The last line of code in your program should be the line
+```
+window:render()
+```
+
+This line starts rendering the window and listening for events.
+
 
 ***Documentation for other widgets coming soon...***
