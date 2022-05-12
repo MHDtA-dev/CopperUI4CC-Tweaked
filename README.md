@@ -28,18 +28,18 @@ wget https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/Coppe
 - Create new lua file, and import the library
 
 ```
-local copperTerm = dofile("CopperUI.lua")
+local copperui = dofile("CopperUI.lua")
 ```
 
 ### Create the window
 
 ```
-local window = copperTerm.createWindow([Title], [Size X], [Size Y])
+local window = copperui.createWindow([Title], [Size X], [Size Y])
 ```
 If you want full screen, use
 
 ```
-local window = copperTerm.createWindow([Title], copperTerm.FULL_SCREEN())
+local window = copperui.createWindow([Title], copperui.FULL_SCREEN())
 ```
 
 - You can make window draggable:
@@ -57,24 +57,24 @@ window:setIsScrollable(true)
 - You can make it in one line:
 
 ```
-local window = copperTerm.createWindow([Title], [Size Z], [Size Y]):setIsDraggable(true):setIsScrollable(true)
+local window = copperui.createWindow([Title], [Size Z], [Size Y]):setIsDraggable(true):setIsScrollable(true)
 ```
 ### Labels
 
 ```
-local label = copperTerm.createLabel([x position], [y position], [text], [text color])
+local label = copperui.createLabel([x position], [y position], [text], [text color])
 ```
 
 For example:
 
 ```
-local label = copperTerm.createLabel(3, 6, "Hello!", colors.red)
+local label = copperui.createLabel(3, 6, "Hello!", colors.red)
 ```
 
 - You can make centered label:
 
 ```
-local label = copperTerm.createCenteredLabel([window], [y position], [text], [text color])
+local label = copperui.createCenteredLabel([window], [y position], [text], [text color])
 ```
 
 - Add your label to the window:
@@ -86,13 +86,13 @@ window:addComponent(label)
 - You can make it in one line:
 
 ```
-window:addComponent(copperTerm.createLabel(3, 6, "Hello!", colors.red))
+window:addComponent(copperui.createLabel(3, 6, "Hello!", colors.red))
 ```
 
 or
 
 ```
-window:addComponent(copperTerm.createCenteredLabel(window, 6, "Hello!", colors.red))
+window:addComponent(copperui.createCenteredLabel(window, 6, "Hello!", colors.red))
 ```
 
 You can change the label text in any piece of code
@@ -107,7 +107,7 @@ label:setText([Text])
 
 ```
 function label_clicked(window, event, button, x, y)
-    window:addComponent(copperTerm.createCenteredLabel(window, 6, "Label was clicked!", colors.red))
+    window:addComponent(copperui.createCenteredLabel(window, 6, "Label was clicked!", colors.red))
 end
 
 label:onEvent("mouse_click", label_clicked)
