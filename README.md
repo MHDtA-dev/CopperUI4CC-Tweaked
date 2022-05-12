@@ -6,3 +6,8 @@
 ```
 wget https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/CopperUI.lua CopperUI.lua
 ```
+### Some images
+
+- Here you can see the calculator written using this library:
+
+!(https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/images/copperuicctweaked.gif)
