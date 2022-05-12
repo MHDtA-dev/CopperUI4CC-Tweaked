@@ -13,6 +13,8 @@ copperTextField = {}
 
 copperListBox = {}
 
+copperSwitch = {}
+
 function has_index (tab, val)
     for index, value in pairs(tab) do
         if index == val then
@@ -521,6 +523,79 @@ function copperButton:new(x, y, width, height, text, textColor)
     self.__index = self; return obj
 end
 
+function copperSwitch:new(x, y)
+    local obj = {}
+    obj.x = x
+    obj.y = y
+    obj.width = 4
+    obj.height = 2
+    obj.enabledColor = colors.lime
+    obj.disabledColor = colors.gray
+    obj.enabled = false
+    obj.eventFuncs = {}
+    obj.eventFrame = true
+    obj.isEnabled = true
+
+    function obj:_render(window)
+        if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
+            local _old_color = term.getTextColor()
+            local _old_back_color = term.getBackgroundColor()
+
+            if self.enabled then
+                paintutils.drawBox((window.x - 1) + self.x, (window.y - 1) + self.y + window._scrollOffset, (window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + self.height - 1 + window._scrollOffset - 1, self.enabledColor)
+                paintutils.drawPixel((window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + self.height - 1 + window._scrollOffset - 1, colors.white)
+            else
+                paintutils.drawBox((window.x - 1) + self.x, (window.y - 1) + self.y + window._scrollOffset, (window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + self.height - 1 + window._scrollOffset - 1, self.disabledColor)
+                paintutils.drawPixel((window.x - 1) + self.x, (window.y - 1) + self.y + window._scrollOffset, colors.white)
+            end
+
+
+            term.setTextColor(_old_color)
+            term.setBackgroundColor(_old_back_color)
+        end
+    end
+
+    function obj:_pullEvent(window, event, button, x, y)
+        if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
+            if self.isEnabled then
+                if event == "mouse_click" then
+                    self.enabled = not self.enabled
+                end
+
+                if has_index(self.eventFuncs, event) then
+                    self.eventFuncs[event](window, event, button, x, y)
+                end
+            end
+        end
+
+    end
+
+    function obj:onEvent(event, func)
+        self.eventFuncs[event] = func
+        return self
+    end
+
+    function obj:disableEventFrame(state)
+        self.eventFrame = not state
+        return self
+    end
+
+    function obj:getState( ... )
+        return self.enabled
+    end
+
+    function obj:getX()
+        return self.x
+    end
+
+    function obj:getY()
+        return self.y
+    end
+
+    setmetatable(obj, self)
+    self.__index = self; return obj
+end
+
 function copperListBox:new(x, y, width, height)
     local obj = {}
     obj.x = x
@@ -690,6 +765,16 @@ end
 function CopperTerm.createCenteredListBox(window, y, width, height)
     listbox = copperListBox:new(math.floor((window.windowWidth - width) / 2), y, width, height)
     return listbox
+end
+
+function CopperTerm.createSwitch(x, y)
+    switch = copperSwitch:new(x, y)
+    return switch
+end
+
+function CopperTerm.createCenteredSwitch(window, y)
+    switch = copperSwitch:new(math.floor((window.windowWidth - 4) / 2), y)
+    return switch
 end
 
 function CopperTerm.FULL_SCREEN()
