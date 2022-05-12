@@ -14,6 +14,11 @@ wget https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/Coppe
 
 ### Some images
 
+- Test application demonstrates widgets in current version of library
+
+![demoapp](https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/images/demoapp.gif)
+
 - Here you can see a calculator written using this library:
 
 ![calculator](https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/images/copperuicctweaked.gif)
+
