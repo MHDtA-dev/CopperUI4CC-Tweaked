@@ -10,4 +10,4 @@ wget https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/Coppe
 
 - Here you can see the calculator written using this library:
 
-!(https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/images/copperuicctweaked.gif)
+![calculator](https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/images/copperuicctweaked.gif)
