@@ -117,6 +117,7 @@ function copperWindow:new(title, width, height)
 
         while true do
             local event, button, x, y = os.pullEvent()
+            local eventByScrollableComponent = false
 
             if event == "mouse_click" then
                 if (x == self.x + self.windowWidth - 1 and y == self.y) or (x == self.x + self.windowWidth - 2 and y == self.y) then
@@ -145,12 +146,6 @@ function copperWindow:new(title, width, height)
                     self.y = y
                 end
             end
-
-            if event == "mouse_scroll" then
-                if self._scrollOffset - button <= 0 and self.isScrollable then
-                    self._scrollOffset = self._scrollOffset - button
-                end
-            end
             
 
             for i = 1, #self.components do
@@ -159,9 +154,19 @@ function copperWindow:new(title, width, height)
                     --os.sleep(3)
                     if (x >= (self.x - 1) + self.components[i].x and x <= (self.x - 1) + self.components[i].x + self.components[i].width - 1) and (y >= self._scrollOffset + (self.y - 1) + self.components[i].y and y <= self._scrollOffset + (self.y - 1) + self.components[i].y + (self.components[i].height - 2)) or not self.components[i].eventFrame then
                         self.components[i]:_pullEvent(self, event, button, x, y)
+
+                        if self.components[i]._scrollableElement == true then
+                        	eventByScrollableComponent = true and self.components[i].isVisible
+                    	end
                     end
                 else
                     self.components[i]:_pullEvent(self, event, button, nil, nil)
+                end
+            end
+
+            if event == "mouse_scroll" then
+                if self._scrollOffset - button <= 0 and self.isScrollable and not eventByScrollableComponent then
+                    self._scrollOffset = self._scrollOffset - button
                 end
             end
 
@@ -580,7 +585,7 @@ function copperSwitch:new(x, y)
         return self
     end
 
-    function obj:getState( ... )
+    function obj:getState()
         return self.enabled
     end
 
@@ -608,9 +613,27 @@ function copperListBox:new(x, y, width, height)
     obj.selectedElementColor = colors.black
     obj.textColor = colors.white
     obj.eventFuncs = {}
+    obj.isVisible = true
     obj.eventFrame = true
+    obj._scrollableElement = true
+    obj._scrollOffset = 0
+    obj.pereves = 0
+    obj.autoScroll = false
 
     function obj:_render(window)
+    	if not self.isVisible then
+    		return
+    	end
+
+    	self.pereves = #self.elements - (self.height - 1)
+    	if self.pereves < 0 then
+    		self.pereves = 0
+    	end
+
+    	if self.autoScroll then
+    		self._scrollOffset = self.pereves
+    	end
+
         if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
             local _old_color = term.getTextColor()
             local _old_back_color = term.getBackgroundColor()
@@ -619,17 +642,22 @@ function copperListBox:new(x, y, width, height)
 
             if #self.elements > 0 then
                 for i=1, #self.elements do
-                    if i == self.selectedElemntIndex then
-                        paintutils.drawBox((window.x - 1) + self.x, (window.y - 1) + self.y + i - 1 + window._scrollOffset, (window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + i - 1 + window._scrollOffset, self.selectedElementColor)
-                    else
-                        paintutils.drawBox((window.x - 1) + self.x, (window.y - 1) + self.y + i - 1 + window._scrollOffset, (window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + i - 1 + window._scrollOffset, self.backgroundColor)
-                    end
-                    term.setCursorPos((window.x - 1) + self.x, (window.y - 1) + self.y + i - 1 + window._scrollOffset)
-                    if string.len(self.elements[i]) > self.width - 1 then
-                        term.write(string.sub(self.elements[i], 1, self.width - 3).."...")
-                    else
-                        term.write(self.elements[i])
-                    end
+                	i = i + self._scrollOffset
+                	if (window.y - 1) + self.y + i - 1 + window._scrollOffset - self._scrollOffset <= (window.y - 1) + self.y + self.height - 1 + window._scrollOffset - 1 then
+	                    if i == self.selectedElemntIndex then
+	                        paintutils.drawBox((window.x - 1) + self.x, (window.y - 1) + self.y + i - 1 + window._scrollOffset - self._scrollOffset, (window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + i - 1 + window._scrollOffset - self._scrollOffset, self.selectedElementColor)
+	                    else
+	                        paintutils.drawBox((window.x - 1) + self.x, (window.y - 1) + self.y + i - 1 + window._scrollOffset - self._scrollOffset, (window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + i - 1 + window._scrollOffset - self._scrollOffset, self.backgroundColor)
+	                    end
+	                    term.setCursorPos((window.x - 1) + self.x, (window.y - 1) + self.y + i - 1 + window._scrollOffset - self._scrollOffset)
+
+                    
+	                    if string.len(self.elements[i]) > self.width - 1 then
+	                        term.write(string.sub(self.elements[i], 1, self.width - 3).."...")
+	                    else
+	                        term.write(self.elements[i])
+	                    end
+                	end
                 end
             end
             term.setTextColor(_old_color)
@@ -638,13 +666,23 @@ function copperListBox:new(x, y, width, height)
     end
 
     function obj:_pullEvent(window, event, button, x, y)
+    	if not self.isVisible then
+    		return
+    	end
+
         if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
             if event == "mouse_click" then
                 --print(self.height)
                 --os.sleep(5)
-                if y - (window.y - 1) - self.y + 1 - window._scrollOffset <= #self.elements then
-                    self.selectedElemntIndex = y - (window.y - 1) - self.y + 1 - window._scrollOffset
+                if y - (window.y - 1) - self.y + 1 - window._scrollOffset + self._scrollOffset <= #self.elements then
+                    self.selectedElemntIndex = y - (window.y - 1) - self.y + 1 - window._scrollOffset + self._scrollOffset
                 end
+            end
+
+            if event == "mouse_scroll" then
+            	if self._scrollOffset + button >= 0 and self._scrollOffset + button <= self.pereves then
+            		self._scrollOffset = self._scrollOffset + button
+            	end
             end
 
             if has_index(self.eventFuncs, event) then
@@ -657,6 +695,24 @@ function copperListBox:new(x, y, width, height)
     function obj:onEvent(event, func)
         self.eventFuncs[event] = func
         return self
+    end
+
+    function obj:setAutoScroll(autoScroll)
+    	self.autoScroll = autoScroll
+    	return self
+    end
+
+    function obj:getAutoScroll()
+    	return self.autoScroll
+    end
+
+    function obj:setIsVisible(isVisible)
+    	self.isVisible = isVisible
+    	return self
+    end
+
+    function obj:getIsVisible()
+    	return self.isVisible
     end
 
     function obj:addElement(element)
@@ -679,6 +735,10 @@ function copperListBox:new(x, y, width, height)
         else
             return self.elements[self.selectedElemntIndex]
         end
+    end
+
+    function obj:getElementsCount()
+    	return #self.elements
     end
 
     function obj:setX(x)
