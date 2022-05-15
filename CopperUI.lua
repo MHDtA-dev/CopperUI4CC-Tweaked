@@ -15,6 +15,14 @@ copperListBox = {}
 
 copperSwitch = {}
 
+copperDropdown = {}
+
+copperSubWindow = {}
+
+copperProgressBar = {}
+
+copperRadioGroup = {}
+
 function has_index (tab, val)
     for index, value in pairs(tab) do
         if index == val then
@@ -62,12 +70,26 @@ function copperWindow:new(title, width, height)
         return self.y
     end
 
-    function setBackgroundColor(color)
+    function obj:setBackgroundColor(color)
         self.backgroundColor = color
     end
 
     function obj:addComponent(component)
         table.insert(self.components, component)
+
+    end
+
+    function obj:getComponentByPosition(x, y)
+        comp = nil
+
+        for i=1, #self.components do
+            if (x >= (self.x - 1) + self.components[i].x and x <= (self.x - 1) + self.components[i].x + self.components[i].width - 1) and (y >= self._scrollOffset + (self.y - 1) + self.components[i].y and y <= self._scrollOffset + (self.y - 1) + self.components[i].y + (self.components[i].height - 2)) then
+                comp = self.components[i]
+            end
+        end
+
+
+        return comp
     end
 
     function obj:_render()
@@ -183,6 +205,21 @@ function copperWindow:new(title, width, height)
 
     end
     
+    setmetatable(obj, self)
+    self.__index = self; return obj
+end
+
+
+function copperSubWindow:new(title, width, height)
+    local obj = {}
+    obj.x = 1
+    obj.y = 1
+    obj.width = width + 1
+    obj.height = height + 1
+    obj.title = title
+
+
+
     setmetatable(obj, self)
     self.__index = self; return obj
 end
@@ -711,6 +748,14 @@ function copperListBox:new(x, y, width, height)
     	return self
     end
 
+    function obj:setSelectedIndex(index)
+        if index <= 0 or index > #self.elements then
+            self.selectedElemntIndex = nil
+        else
+            self.selectedElemntIndex = index
+        end
+    end
+
     function obj:getIsVisible()
     	return self.isVisible
     end
@@ -718,6 +763,10 @@ function copperListBox:new(x, y, width, height)
     function obj:addElement(element)
         table.insert(self.elements, element)
         return self
+    end
+
+    function obj:getElementsArray()
+        return self.elements
     end
 
     function obj:removeLatestElement(element)
@@ -782,6 +831,278 @@ function copperListBox:new(x, y, width, height)
 
 end
 
+function copperDropdown:new(x, y, width, window)
+    local obj = {}
+    obj.x = x
+    obj.y = y
+    obj.width = width
+    obj.height = 2
+    obj.textColor = colors.white
+    obj.fieldColor = colors.gray
+    obj.isEnabled = true
+    obj.eventFrame = true
+    obj.eventFuncs = {}
+    obj.listbox = copperListBox:new(x, y + 1, width, 4):setIsVisible(false):onEvent("mouse_click", function() obj.listbox:setIsVisible(false) end)
+    window:addComponent(obj.listbox)
+
+
+    function obj:_render(window)
+        if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
+            local _old_color = term.getTextColor()
+            local _old_back_color = term.getBackgroundColor()
+            paintutils.drawFilledBox((window.x - 1) + self.x, (window.y - 1) + self.y + window._scrollOffset, (window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + self.height - 1 + window._scrollOffset - 1, self.fieldColor)
+            term.setCursorPos((window.x - 1) + self.x, (window.y - 1) + math.floor((self.height / 2) + self.y) + window._scrollOffset - 1)
+            term.setTextColor(self.textColor)
+            term.setBackgroundColor(self.fieldColor)
+
+            if self.listbox:getSelectedElement() == nil then
+                term.write("")
+            else
+                if string.len(self.listbox:getSelectedElement()) > self.width then
+                    term.write(string.sub(self.listbox:getSelectedElement(), 1, self.width - 3).."...")
+                else
+                    term.write(self.listbox:getSelectedElement())
+                end
+            end
+            term.setBackgroundColor(_old_back_color)
+            term.setTextColor(_old_color)
+        end
+    end
+
+    function obj:initialSelectionIndex(index)
+        self.listbox:setSelectedIndex(index)
+    end
+
+    function obj:_pullEvent(window, event, button, x, y)
+        if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
+            if event == "mouse_click" then
+                if self.isEnabled then
+
+                    if #self.listbox:getElementsArray()  <= 4 then
+                        self.listbox:setHeight(#self.listbox:getElementsArray())
+                    else
+                        self.listbox:setHeight(4)
+                    end
+
+                    self.listbox:setIsVisible(not self.listbox:getIsVisible())
+                end
+            end
+
+            if self.isEnabled then
+                if has_index(self.eventFuncs, event) then
+                    self.eventFuncs[event](window, event, button, x, y)
+                end
+            end
+        end
+
+    end
+
+    function obj:addElement(element)
+        self.listbox:addElement(element)
+        return self
+    end
+
+    setmetatable(obj, self)
+    self.__index = self; return obj
+end
+
+function copperProgressBar:new(x, y, width)
+    local obj = {}
+    obj.x = x
+    obj.y = y
+    obj.width = width
+    obj.height = 2
+    obj.progress = 0
+    obj.progressColor = colors.lime
+    obj.color = colors.gray
+    obj.eventFrame = true
+    obj.eventFuncs = {}
+
+    function obj:_render(window)
+        if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
+            local _old_color = term.getTextColor()
+            local _old_back_color = term.getBackgroundColor()
+            paintutils.drawFilledBox((window.x - 1) + self.x, (window.y - 1) + self.y + window._scrollOffset, (window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + self.height - 1 + window._scrollOffset - 1, self.color)
+
+            if math.floor(self.width * self.progress / 100) ~= 0 then
+                paintutils.drawFilledBox((window.x - 1) + self.x, (window.y - 1) + self.y + window._scrollOffset, (window.x - 1) + self.x + (self.width * self.progress / 100) - 1, (window.y - 1) + self.y + self.height - 1 + window._scrollOffset - 1, self.progressColor)
+            end
+            term.setBackgroundColor(_old_back_color)
+            term.setTextColor(_old_color)
+        end
+    end
+
+    function obj:_pullEvent(window, event, button, x, y)
+        if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
+            if self.isEnabled then
+                if has_index(self.eventFuncs, event) then
+                    self.eventFuncs[event](window, event, button, x, y)
+                end
+            end
+
+            if has_index(self.eventFuncs, event) then
+                self.eventFuncs[event](window, event, button, x, y)
+            end
+
+        end
+
+    end
+
+    function obj:setX(x)
+        self.x = x
+        return self
+    end
+
+    function obj:setY(y)
+        self.y = y
+        return self
+    end
+
+    function obj:setWidth(width)
+        self.width = width
+        return self
+    end
+
+    function obj:setHeight(height)
+        self.height = height + 1
+        return self
+    end
+
+    function obj:getWidth()
+        return self.width
+    end
+
+    function obj:getHeight()
+        return self.height - 1
+    end
+
+    function obj:getX()
+        return self.x
+    end
+
+    function obj:getY()
+        return self.y
+    end
+
+    function obj:getProgress()
+        return self.progress
+    end
+
+    function obj:setProgress(percentage)
+        if percentage > 100 then
+            self.progress = 100
+        elseif percentage < 0 then
+            self.progress = 0
+        else
+            self.progress = percentage
+        end
+        return self
+    end
+
+    setmetatable(obj, self)
+    self.__index = self; return obj
+end
+
+function copperRadioGroup:new(x, y)
+    local obj = {}
+    obj.x = x
+    obj.y = y
+    obj.width = 5
+    obj.height = 1
+    obj.elements = {}
+    obj.selectedElemntIndex = nil
+    obj.eventFrame = true
+    obj.eventFuncs = {}
+    obj.radioColor = colors.gray
+    obj.isVisible = true
+    obj.textColor = colors.white
+
+    function obj:_render(window)
+        if not self.isVisible then
+            return
+        end
+
+        if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
+            local _old_color = term.getTextColor()
+            local _old_back_color = term.getBackgroundColor()
+            --paintutils.drawFilledBox((window.x - 1) + self.x, (window.y - 1) + self.y + window._scrollOffset, (window.x - 1) + self.x + self.width - 1, (window.y - 1) + self.y + self.height - 1 + window._scrollOffset - 1, self.backgroundColor)
+            term.setTextColor(self.textColor)
+
+            if #self.elements > 0 then
+                for i=1, #self.elements do
+                    if (window.y - 1) + self.y + i - 1 + window._scrollOffset <= (window.y - 1) + self.y + self.height - 1 + window._scrollOffset - 1 then
+                        paintutils.drawPixel((window.x - 1) + self.x, (window.y - 1) + self.y + i - 1 + window._scrollOffset, self.radioColor)
+                        term.setBackgroundColor(_old_back_color)
+                        if i == self.selectedElemntIndex then
+                            term.setBackgroundColor(self.radioColor)
+                            term.setCursorPos((window.x - 1) + self.x, (window.y - 1) + self.y + i - 1 + window._scrollOffset)
+                            term.write("*")
+                            term.setBackgroundColor(_old_back_color)
+                        end
+                        term.setCursorPos((window.x - 1) + self.x + 2, (window.y - 1) + self.y + i - 1 + window._scrollOffset)
+                        term.write(self.elements[i])
+                    end
+                end
+            end
+            term.setTextColor(_old_color)
+            term.setBackgroundColor(_old_back_color)
+        end
+    end
+
+    function obj:_pullEvent(window, event, button, x, y)
+        if not self.isVisible then
+            return
+        end
+
+        if (window.y - 1) + window._scrollOffset + self.y + self.height > window.y then
+            if event == "mouse_click" then
+                --print(self.height)
+                --os.sleep(5)
+                if y - (window.y - 1) - self.y + 1 - window._scrollOffset <= #self.elements then
+                    self.selectedElemntIndex = y - (window.y - 1) - self.y + 1 - window._scrollOffset
+                end
+            end
+
+
+            if has_index(self.eventFuncs, event) then
+                self.eventFuncs[event](window, event, button, x, y)
+            end
+        end
+
+    end
+
+    function obj:addElement(element)
+        table.insert(self.elements, element)
+        self.height = self.height + 1
+        return self
+    end
+
+    function obj:getElementsArray()
+        return self.elements
+    end
+
+    function obj:removeLatestElement(element)
+        table.remove(self.elements)
+        return self
+    end
+
+    function obj:getSelectedIndex()
+        return self.selectedElemntIndex
+    end
+
+    function obj:getSelectedElement()
+        if self.selectedElemntIndex == nil then
+            return nil
+        else
+            return self.elements[self.selectedElemntIndex]
+        end
+    end
+
+    setmetatable(obj, self)
+    self.__index = self; return obj
+
+end
+
 function CopperTerm.createWindow(title, width, height)
     window = copperWindow:new(title, width, height)
     return window
@@ -835,6 +1156,36 @@ end
 function CopperTerm.createCenteredSwitch(window, y)
     switch = copperSwitch:new(math.floor((window.windowWidth - 4) / 2), y)
     return switch
+end
+
+function CopperTerm.createDropdown(x, y, width, window)
+    dropdown = copperDropdown:new(x, y, width, window)
+    return dropdown
+end
+
+function CopperTerm.createCenteredDropdown(window, y, width)
+    dropdown = copperDropdown:new(math.floor((window.windowWidth - width) / 2), y, width, window)
+    return dropdown
+end
+
+function CopperTerm.createProgressBar(x, y, width)
+    progressBar = copperProgressBar:new(x, y, width)
+    return progressBar
+end
+
+function CopperTerm.createCenteredProgressBar(window, y, width)
+    progressBar = copperProgressBar:new(math.floor((window.windowWidth - width) / 2), y, width)
+    return progressBar
+end
+
+function CopperTerm.createRadioGroup(x, y)
+    radioGroup = copperRadioGroup:new(x, y)
+    return radioGroup
+end
+
+function CopperTerm.createCenteredRadioGroup(window, y)
+    radioGroup = copperRadioGroup:new(math.floor((window.windowWidth - 5) / 2), y)
+    return radioGroup
 end
 
 function CopperTerm.FULL_SCREEN()
