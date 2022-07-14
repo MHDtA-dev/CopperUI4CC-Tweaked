@@ -23,6 +23,8 @@ copperProgressBar = {}
 
 copperRadioGroup = {}
 
+copperScrollBar = {}
+
 function has_index (tab, val)
     for index, value in pairs(tab) do
         if index == val then
@@ -48,6 +50,7 @@ function copperWindow:new(title, width, height)
     obj._enableDrag = false
     obj._scrollOffset = 0
     obj.isScrollable = false
+    obj.isDecorated = true
 
     
     function obj:getTitle()
@@ -100,14 +103,16 @@ function copperWindow:new(title, width, height)
             self.components[i]:_render(self)
         end
 
-        paintutils.drawBox(self.x, self.y, self.x + self.windowWidth - 1, self.y, self.headerColor)
-        term.setCursorPos(self.x, self.y)
-        term.write(self.windowTitle)
-        paintutils.drawPixel(self.x + self.windowWidth - 2, self.y, colors.red)
-        paintutils.drawPixel(self.x + self.windowWidth - 1, self.y, colors.red)
-        term.setCursorPos(self.x + self.windowWidth - 1, self.y)
-        term.write("X")
-        term.setBackgroundColor(colors.black)
+        if self.isDecorated then
+	        paintutils.drawBox(self.x, self.y, self.x + self.windowWidth - 1, self.y, self.headerColor)
+	        term.setCursorPos(self.x, self.y)
+	        term.write(self.windowTitle)
+	        paintutils.drawPixel(self.x + self.windowWidth - 2, self.y, colors.red)
+	        paintutils.drawPixel(self.x + self.windowWidth - 1, self.y, colors.red)
+	        term.setCursorPos(self.x + self.windowWidth - 1, self.y)
+	        term.write("X")
+	    end
+	    term.setBackgroundColor(colors.black)
 
     end
 
@@ -123,6 +128,15 @@ function copperWindow:new(title, width, height)
     function obj:setIsScrollable(isScrollable)
         self.isScrollable = isScrollable
         return self
+    end
+
+    function obj:setDecorated(decorated)
+    	self.isDecorated = decorated
+    	return self
+    end
+
+    function obj:getDecorated()
+    	return self.isDecorated
     end
 
     function obj:getIsScrollable()
@@ -142,7 +156,7 @@ function copperWindow:new(title, width, height)
             local eventByScrollableComponent = false
 
             if event == "mouse_click" then
-                if (x == self.x + self.windowWidth - 1 and y == self.y) or (x == self.x + self.windowWidth - 2 and y == self.y) then
+                if ((x == self.x + self.windowWidth - 1 and y == self.y) or (x == self.x + self.windowWidth - 2 and y == self.y)) and self.isDecorated then
                     self:close()
                 end
 
