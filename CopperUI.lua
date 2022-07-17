@@ -25,6 +25,7 @@ copperRadioGroup = {}
 
 copperScrollBar = {}
 
+
 function has_index (tab, val)
     for index, value in pairs(tab) do
         if index == val then
@@ -51,6 +52,9 @@ function copperWindow:new(title, width, height)
     obj._scrollOffset = 0
     obj.isScrollable = false
     obj.isDecorated = true
+    obj.enableWatermark = false
+    obj.watermarkAtStart = false
+    obj.wmDrawed = false
 
     
     function obj:getTitle()
@@ -77,6 +81,11 @@ function copperWindow:new(title, width, height)
         self.backgroundColor = color
     end
 
+    function obj:setWatermarkEnabled(state)
+        self.enableWatermark = state
+        return self
+    end
+
     function obj:addComponent(component)
         table.insert(self.components, component)
 
@@ -96,6 +105,11 @@ function copperWindow:new(title, width, height)
     end
 
     function obj:_render()
+        if self.watermarkAtStart and not self.wmDrawed then
+            self:drawWatermark()
+            self.wmDrawed = true
+            os.sleep(1.5)
+        end
         term.clear()
         paintutils.drawFilledBox(self.x, self.y, self.x + self.windowWidth - 1, self.y + self.windowHeight - 1, self.backgroundColor)
 
@@ -125,6 +139,11 @@ function copperWindow:new(title, width, height)
         return self
     end
 
+    function obj:setWatermarkAtStart(state)
+        self.watermarkAtStart = state
+        return self
+    end
+
     function obj:setIsScrollable(isScrollable)
         self.isScrollable = isScrollable
         return self
@@ -145,6 +164,22 @@ function copperWindow:new(title, width, height)
 
     function obj:getIsDraggable()
         return self.isDraggable
+    end
+
+    function obj:drawWatermark()
+        term.setTextColor(colors.black)
+        term.setBackgroundColor(colors.white)
+        term.clear()
+        term.setCursorPos(math.floor((self.windowWidth - 29) / 2), math.floor(self.windowHeight / 2) + 5)
+        term.write("Powered by CopperUI Framework")
+        term.setTextColor(colors.lightGray)
+        term.setCursorPos(math.floor((self.windowWidth - 10) / 2), math.floor(self.windowHeight / 2) + 6)
+        term.write("© MHD 2022")
+        paintutils.drawFilledBox((self.windowWidth / 2) - 5, math.floor(self.windowHeight / 2) - 6, (self.windowWidth / 2) + 5, math.floor(self.windowHeight / 2) + 1, colors.orange)
+        paintutils.drawFilledBox((self.windowWidth / 2) - 4, math.floor(self.windowHeight / 2) - 5, (self.windowWidth / 2) + 4, math.floor(self.windowHeight / 2) - 1, colors.black)
+        term.setTextColor(colors.white)
+        term.setCursorPos((self.windowWidth / 2) - 3, math.floor(self.windowHeight / 2) - 4)
+        term.write(">_")
     end
     
     function obj:render() 
@@ -209,6 +244,16 @@ function copperWindow:new(title, width, height)
             self:_render()
 
             if self.isClosed then
+                if self.enableWatermark and not self.watermarkAtStart then
+                    
+                    self:drawWatermark()
+                    --term.setCursorPos(math.floor((self.windowWidth - 8) / 2), math.floor(self.windowHeight / 2) + 5)
+                    os.sleep(1.5)
+                    term.setBackgroundColor(colors.gray)
+                    term.clear()
+                    os.sleep(0.5)
+
+                end
                 term.setCursorPos(1, 1)
                 term.setBackgroundColor(colors.black)
                 term.clear()
@@ -216,6 +261,8 @@ function copperWindow:new(title, width, height)
             end
 
         end
+
+
 
     end
     
