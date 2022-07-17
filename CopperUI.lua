@@ -687,6 +687,11 @@ function copperSwitch:new(x, y)
         return self.enabled
     end
 
+    function obj:setState(state)
+        self.enabled = state
+        return self
+    end
+
     function obj:getX()
         return self.x
     end
