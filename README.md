@@ -1,5 +1,7 @@
 ![Logo](https://raw.githubusercontent.com/MihlanDOta/CopperUI4CC-Tweaked/main/images/cuilogo.JPG)
 
+##Attention, please. The unofficial CopperUI library is laid out in the PyPI package manager. We are already working on this together with our dev ##studio, the official Python port will be posted later.
+
 # CopperUI4CC-Tweaked
 
 ## What is CopperUI?
